@@ -4,5 +4,4 @@ Library           MailReader.py
 
 *** Test Case ***
 Test Email
-    Send Email    test-message    test-subject    email_address    recipient    smtp_server    smtp_port    password
-    
+    # Will be expanded with example test cases

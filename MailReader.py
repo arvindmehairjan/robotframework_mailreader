@@ -1,23 +1,76 @@
 from robot.api.deco import keyword, library
 import smtplib
 from email.message import EmailMessage
+import email
+from email.header import decode_header
+import imaplib
 
 @library
 class MailReader(object):
     ROBOT_LIBRARY_SCOPE = 'TEST CASE'
 
-    @keyword('Get The Last Email')
-    def get_last_email(self, user, password, mailbox, subject):
-        """
-        Get the subject of the last email of the given account.
-        | get_last_email | user=email_adress | password=password | mailbox=mailbox | subject=subject
-        """
-        enter_credentials = Credentials(user, password)
-        account = Account(mailbox, credentials=enter_credentials, autodiscover=True)
-        account.inbox.filter(subject__contains=subject)
-        for item in account.inbox.filter(subject__contains=subject).order_by('-datetime_received')[
-                    :1]:
-            return str(item.account), item.to_recipients, item.subject, item.datetime_received.strftime("%d-%m-%Y %H:%M:%S")
+    @keyword('Read The Last Email Subject')
+    def read_last_email_subject(self, username, password, subject):
+
+        def clean(text):
+            # clean text for creating a folder
+            return "".join(c if c.isalnum() else "_" for c in text)
+
+        # number of top emails to fetch
+        N = 1
+
+        # create an IMAP4 class with SSL, use your email provider's IMAP server
+        imap = imaplib.IMAP4_SSL("imap.gmail.com")
+        # authenticate
+        imap.login(username, password)
+
+        # select a mailbox (in this case, the inbox mailbox)
+        # use imap.list() to get the list of mailboxes
+        status, messages = imap.select("INBOX")
+
+        # total number of emails
+        messages = int(messages[0])
+
+        for i in range(messages, messages-N, -1):
+            # fetch the email message by ID
+            res, msg = imap.fetch(str(i), "(RFC822)")
+            for response in msg:
+                if isinstance(response, tuple):
+
+                    # parse a bytes email into a message object
+                    msg = email.message_from_bytes(response[1])
+                    subject, encoding = decode_header(msg["Subject"])[0]
+                    if isinstance(subject, bytes):
+
+                        subject = subject.decode(encoding)
+
+                    From, encoding = decode_header(msg.get("From"))[0]
+                    if isinstance(From, bytes):
+                        From = From.decode(encoding)
+                    print(subject)
+                    # print("From:", From)
+
+                    # if the email message is multipart
+                    if msg.is_multipart():
+
+                        for part in msg.walk():
+                            content_type = part.get_content_type()
+                            content_disposition = str(part.get("Content-Disposition"))
+                            try:
+                                body = part.get_payload(decode=True).decode()
+                            except:
+                                pass
+                            # if content_type == "text/plain" and "attachment" not in content_disposition:
+                            #     print(body)
+                    # else:
+                    #     # extract content type of email
+                    #     content_type = msg.get_content_type()
+                    #     body = msg.get_payload(decode=True).decode()
+                    #     if content_type == "text/plain":
+                    #         print(body)
+
+        imap.close()
+        imap.logout()
 
     @keyword('Send Email')
     def send_email(self, message, subject, email_address, recipient, smtp_server, port, password):
@@ -31,6 +84,3 @@ class MailReader(object):
         server.login(email_address, password)
         server.send_message(msg)
         server.close()
-
-
-    
