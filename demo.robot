@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation     A simple example of using a the Mailreader library.
-Library           MailReader.py
+Library           MailReader
 
 *** Test Case ***
 Testing Email
