@@ -9,8 +9,8 @@ import imaplib
 class MailReader(object):
     ROBOT_LIBRARY_SCOPE = 'TEST CASE'
 
-    @keyword('Read The Last Email Subject')
-    def read_last_email_subject(self, username, password, subject):
+    @keyword('Read The Last Email')
+    def read_last_email(self, username, password):
 
         def clean(text):
             # clean text for creating a folder
@@ -47,8 +47,8 @@ class MailReader(object):
                     From, encoding = decode_header(msg.get("From"))[0]
                     if isinstance(From, bytes):
                         From = From.decode(encoding)
-                    print(subject)
-                    # print("From:", From)
+                    print("Subject:", subject)
+                    print("From:", From)
 
                     # if the email message is multipart
                     if msg.is_multipart():
@@ -60,14 +60,14 @@ class MailReader(object):
                                 body = part.get_payload(decode=True).decode()
                             except:
                                 pass
-                            # if content_type == "text/plain" and "attachment" not in content_disposition:
-                            #     print(body)
-                    # else:
-                    #     # extract content type of email
-                    #     content_type = msg.get_content_type()
-                    #     body = msg.get_payload(decode=True).decode()
-                    #     if content_type == "text/plain":
-                    #         print(body)
+                            if content_type == "text/plain" and "attachment" not in content_disposition:
+                                print(body)
+                    else:
+                        # extract content type of email
+                        content_type = msg.get_content_type()
+                        body = msg.get_payload(decode=True).decode()
+                        if content_type == "text/plain":
+                            print(body)
 
         imap.close()
         imap.logout()
