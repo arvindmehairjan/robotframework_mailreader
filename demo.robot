@@ -6,5 +6,6 @@ Library           MailReader
 Testing Email
     # Sending Emails
     Send Email    message    subject    email_address    recipient    smtp_server    port    password
+    
     # Read your last email
     Read The Last Email    username    password
