@@ -4,7 +4,7 @@ Library           MailReader
 
 *** Test Case ***
 Testing Email
-    # Sending Emails
+    # Sending emails
     Send Email    message    subject    email_address    recipient    smtp_server    port    password
     
     # Read your last email
